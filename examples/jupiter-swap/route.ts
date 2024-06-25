@@ -811,7 +811,54 @@ app.openapi(
     responses: actionsSpecOpenApiGetResponse,
   }),
   async (c) => {
+    const mint = "2PfwgKca6ob1ddBEoqLzeRUXRGpmb4ZBuJ9fX5fzpump"//c.req.param('coin');
+    const amountParameterName = 'amount';
+    const dt = new Date().getTime();
+    const candlestickData = await getCandlestickData(mint as string);
 
+    const image1 = await generateCandlestickChart(mint, candlestickData) as any
+
+
+  const coin = await(await fetch("https://frontend-api.pump.fun/coins/"+mint)).json()
+
+  const response: ActionsSpecGetResponse = {
+    icon: image1.imgurLink,
+      label: `Swap ${coin.name}`,
+      title: `Swap ${coin.name}`,
+      description: `Swap ${coin.name} with SOL. Choose a SOL amount of either from the options below, or enter a custom amount.`,
+      links: {
+        actions: [
+          ...SWAP_AMOUNT_USD_OPTIONS.map((amount) => ({
+            label: `${amount}`,
+            href: `/buy/${coin.mint}/${amount}`,
+          })),
+          {
+            href: `/buy/${coin.mint}/{${amountParameterName}}`,
+
+            label: `Buy ${coin.name}`,
+            parameters: [
+              {
+                name: amountParameterName,
+                label: 'Enter a custom SOL amount',
+              },
+            ],
+          },
+          {
+            href: `/sell/${coin.mint}/{${amountParameterName}}`,
+            label: `Sell ${coin.name}`,
+            parameters: [
+              {
+                name: amountParameterName,
+                label: 'Enter a custom SOL amount',
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    return c.json(response);
+/*
     const latestCoin = await getLatestPumpFunCoin();
     const kothCoin = await getKingOfTheHillCoin();
     const amountParameterName = 'amount';
@@ -842,7 +889,7 @@ app.openapi(
       },
     };
 
-    return c.json(response);
+    return c.json(response);*/
   },
 );
 import fs from 'fs'
