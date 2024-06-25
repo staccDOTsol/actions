@@ -794,9 +794,7 @@ const generateCandlestickChart = async (mint: any, candlestickData: any, data2?:
 // @ts-ignore
   const image = await chartJSNodeCanvas.renderToBuffer(configuration);
   const path = new Date().getTime().toString()+'.png'
-  fs.writeFileSync(path, image)
-  const img = await uploadImageToImgur(image.toString('base64'))
-  return {imagePath: path, imgurLink: img}
+  return {image}
 };
 const app = new OpenAPIHono();
 
@@ -824,7 +822,7 @@ app.openapi(
 
 
     const response: ActionsSpecGetResponse = {
-      icon: i1.imgurLink,
+      icon: 'data:image/png;base64,' + i1.image.toString('base64'), // Ensure correct MIME type
       label: `Swap ${kothCoin.name} or ${latestCoin.name}`,
       title: `Swap ${kothCoin.name} or ${latestCoin.name}`,
       description: `Swap most recent KOTH ${kothCoin.name} or most recent coin ${latestCoin.name} with SOL. Choose a SOL amount of either from the options below, or enter a custom amount.`,
@@ -877,8 +875,8 @@ app.openapi(
   const coin = await(await fetch("https://frontend-api.pump.fun/coins/"+mint)).json()
 
   const response: ActionsSpecGetResponse = {
-    icon: image1.imgurLink,
-      label: `Swap ${coin.name}`,
+    icon: 'data:image/png;base64,' + image1.image.toString('base64'), // Ensure correct MIME type
+    label: `Swap ${coin.name}`,
       title: `Swap ${coin.name}`,
       description: `Swap ${coin.name} with SOL. Choose a SOL amount of either from the options below, or enter a custom amount.`,
       links: {
