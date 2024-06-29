@@ -18,7 +18,7 @@ app.route('/api/jupiter/swap', jupiterSwap);
 app.route('/api/helius/stake', heliusStake);
 app.route('/api/sanctum/trade', sanctumTrade);
 app.route('/api/tensor/buy-floor', tensorBuyFloor);
-app.route('/api/meteora/swap', meteoraSwap);
+app.route('/', meteoraSwap);
 // </--Actions-->
 
 app.doc('/doc', {
