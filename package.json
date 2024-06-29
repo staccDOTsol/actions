@@ -7,25 +7,39 @@
     "url": "https://github.com/dialectlabs/actions"
   },
   "scripts": {
-    "dev": "tsx watch examples/index.ts"
+    "install": "npm i -g yarn",
+    "dev": "yarn tsx watch examples/index.ts",
+    "start": "yarn tsx watch examples/index.ts",
+    "postinstall": "puppeteer install"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
     "@hono/node-server": "^1.11.3",
     "@hono/swagger-ui": "^0.3.0",
     "@hono/zod-openapi": "^0.14.5",
     "@jup-ag/api": "^6.0.23",
+    "@solana/spl-token": "^0.4.7",
     "@solana/web3.js": "^1.91.8",
-    "@solana/actions": "^1.0.2",
-    "sanctum-lst-list": "^0.2.13",
-    "@solana/spl-token-registry": "^0.2.4574",
-    "@mercurial-finance/dynamic-amm-sdk": "^0.4.23",
-    "mathjs": "^13.0.0",
-    "hono": "^4.4.7"
+    "canvas": "^2.11.2",
+    "chart.js": "3.7.1",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "chartjs-node-canvas": "4.0.0",
+    "date-fns": "^3.6.0",
+    "express": "^4.17.1",
+    "form-data": "^4.0.0",
+    "highcharts-export-server": "^2.0.0",
+    "hono": "^4.4.7",
+    "imgur": "^2.4.2",
+    "ipfs-http-client": "^60.0.1",
+    "ipfs-infura": "^1.1.9",
+    "puppeteer": "^21.0.0",
+    "sharp": "^0.33.4",
+    "tsx": "^4.15.7",
+    "typescript": "latest",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
-    "@types/bn.js": "^5.1.5",
-    "tsx": "^4.7.1",
     "prettier": "^3.3.2"
   }
 }
