@@ -22,7 +22,9 @@
     "@solana/spl-token-registry": "^0.2.4574",
     "@mercurial-finance/dynamic-amm-sdk": "^0.4.23",
     "mathjs": "^13.0.0",
-    "hono": "^4.4.7"
+    "hono": "^4.4.7",
+    "tsx": "^4.15.7",
+    "typescript": "latest"
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
