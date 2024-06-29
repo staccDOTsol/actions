@@ -57,7 +57,7 @@ app.openapi(createRoute({
   responses: actionsSpecOpenApiGetResponse,
 }), async (c) => {
   const poolAddress = c.req.param('poolAddress');
-  const { token, referrer } = c.req.valid('query');
+  const { token, referrer } = c.req.valid('query') as any;
 
   const [inputToken, outputToken] = await getTokenPair(poolAddress, token);
 
