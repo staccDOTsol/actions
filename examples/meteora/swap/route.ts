@@ -97,10 +97,10 @@ app.openapi(createRoute({
       actions: [
         ...SWAP_AMOUNT_USD_OPTIONS.map((amount) => ({
           label: `${USDollar.format(amount)}`,
-          href: `/api/meteora/swap/${poolAddress}/${amount}?token=${token}&referrer=${referrer || ''}`,
+          href: `/${poolAddress}/${amount}?token=${token}&referrer=${referrer || ''}`,
         })),
         {
-          href: `/api/meteora/swap/${poolAddress}/{${amountParameterName}}?token=${token}&referrer=${referrer || ''}`,
+          href: `/${poolAddress}/{${amountParameterName}}?token=${token}&referrer=${referrer || ''}`,
           label: `Buy ${outputTokenMeta.symbol}`,
           parameters: [
             {
