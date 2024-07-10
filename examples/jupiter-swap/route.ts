@@ -1072,7 +1072,7 @@ app.openapi(
   tx.feePayer = new PublicKey(account)
     // Log the saved data for debugging
     console.log(`Saved message for slug ${slug}: ${message}`);
-const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("https://tokenblink-556d711c7656.herokuapp.com/"+slug)
+const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("https://actions.dialect.to/?action=solana-action:https://tokenblink-556d711c7656.herokuapp.com/"+slug)
     // Redirect to the GET endpoint
 console.log((tweetIt))
 
