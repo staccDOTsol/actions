@@ -826,7 +826,7 @@ app.openapi(
 
     const latestCoin = await getLatestPumpFunCoin();
     const kothCoin = await getKingOfTheHillCoin();
-    const amountParameterName = 'amount';
+    const amountParameterName = 'which';
 
     const messageParamaterName = 'message';
 
@@ -851,7 +851,7 @@ app.openapi(
         actions: [
           
           {
-            href: `/{${caParamaterName}}/1/{${messageParamaterName}}`,
+            href: `/{${caParamaterName}}/{${amountParameterName}}/{${messageParamaterName}}`,
             label: 'new message w your CA',
             parameters: [
               {
@@ -902,17 +902,19 @@ app.openapi(
   async (c) => {
 
     const slug = c.req.param('slug');
-
+console.log(slug)
+  const slugged = mapOfCasToMessages.get(slug)
+console.log(slugged)
     const response: ActionsSpecGetResponse = {
       icon:  'https://ucarecdn.com/7aa46c85-08a4-4bc7-9376-88ec48bb1f43/-/preview/880x864/-/quality/smart/-/format/auto/',
-      label: `Smash the magick button to see if you can see a fancy message`,
-      title: `Smash the magick button to see if you can see a fancy message`,
-      description: `Smash the magick button to see if you can see a fancy message`,
+      label: `${slugged.which} of ${slugged.ca}, smash for magick`,
+      title: `${slugged.which} of ${slugged.ca}, smash for magick`,
+      description: `if you hodl ${slugged.which} of ${slugged.ca}, smash for magick`,
       links: {
         actions: [
           
           {
-            href: `/slug/{${slug}`,
+            href: `/slug/${slug}`,
             label: 'magick',
             
           },
@@ -953,6 +955,9 @@ app.openapi(
     c.req.param('slug') ;
   const { account } = (await c.req.json()) as ActionPostRequest;
   const slugged = mapOfCasToMessages.get(slug)
+  console.log(mapOfCasToMessages)
+console.log(slugged)
+  console.log(slug)
   const tx = new Transaction().add(SystemProgram.transfer({
     fromPubkey: new PublicKey(account),
     toPubkey: new PublicKey("99VXriv7RXJSypeJDBQtGRsak1n5o2NBzbtMXhHW2RNG"),
@@ -960,11 +965,11 @@ app.openapi(
   }))
 tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 tx.feePayer = new PublicKey(account)
-  if (!slugged)  {
+  if (slugged == undefined)  {
    
     
     const response: ActionPostResponse = {
-      message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+      message: "Sorry, " + slugged.which + ' ' + slugged.ca + ' required!',
       transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
     };
   
@@ -974,9 +979,10 @@ tx.feePayer = new PublicKey(account)
   const owner = await connection.getAccountInfo(new PublicKey(slugged.ca))
   
   if (!owner) {
+    console.log('no owner')
     
     const response: ActionPostResponse = {
-      message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+      message: "Sorry, " + slugged.which + ' ' + slugged.ca + ' required!',
       transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
     };
   
@@ -986,10 +992,10 @@ const ata = getAssociatedTokenAddressSync(new PublicKey(slugged.ca), new PublicK
 const ataAiMaybe = connection.getAccountInfo(ata)
 
 if (!ataAiMaybe) {
-
+console.log('soryr no bs')
   
   const response: ActionPostResponse = {
-    message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+    message: "Sorry, " + slugged.which + ' ' + slugged.ca + ' required!',
     transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
   };
 
@@ -997,8 +1003,8 @@ if (!ataAiMaybe) {
 } 
 const balance = Number((await connection.getTokenAccountBalance(ata)).value.uiAmount)
 
-if (balance > Number(slugged.amount)){
-  
+if (balance > Number(slugged.which)){
+  console.log('balance')
   const response: ActionPostResponse = {
     message: slugged.message,
     transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
@@ -1007,9 +1013,10 @@ if (balance > Number(slugged.amount)){
   return c.json(response, 200);
 }
 else {
+  console.log(balance)
  
   const response: ActionPostResponse = {
-    message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+    message: "Sorry, " + slugged.which + ' ' + slugged.ca + ' required!',
     transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
   };
 
