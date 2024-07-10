@@ -1077,8 +1077,9 @@ const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("h
 console.log((tweetIt))
 
 
+
     const response: ActionPostResponse = {
-      message: tweetIt,
+      message: tweetIt + "\n\n" + "https://actions.dialect.to/?action=solana-action:https://tokenblink-556d711c7656.herokuapp.com/"+slug,
       transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
     };
   
