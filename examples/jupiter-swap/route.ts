@@ -902,7 +902,6 @@ app.openapi(
   async (c) => {
 
     const slug = c.req.param('slug');
-const slugParamaterName = 'slug'
 
     const response: ActionsSpecGetResponse = {
       icon:  'https://ucarecdn.com/7aa46c85-08a4-4bc7-9376-88ec48bb1f43/-/preview/880x864/-/quality/smart/-/format/auto/',
@@ -913,7 +912,7 @@ const slugParamaterName = 'slug'
         actions: [
           
           {
-            href: `/slug/{${slugParamaterName}`,
+            href: `/slug/{${slug}`,
             label: 'magick',
             
           },
