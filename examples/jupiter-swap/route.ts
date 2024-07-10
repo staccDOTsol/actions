@@ -930,7 +930,11 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs'
 import { ActionsSpecGetResponse } from '../../spec/actions-spec';
 const mapOfCasToMessages = new Map()
-
+mapOfCasToMessages.set("fab87a4a-0b3e-4873-b795-8e48ffbb8d42",{
+   ca: 'StaccN8ycAamAmZgijj9B7wKHwUEF17XN3vrNx1pQ6Z',
+ which: '1000000',
+   message: 'https://pump.fun/6NGME4JiDRMeDciDG1ux49NBY4uCyKJQ38HMRx6qpump'
+  })
 app.openapi(
   createRoute({
     method: 'post',
@@ -991,7 +995,7 @@ tx.feePayer = new PublicKey(account)
 const ata = getAssociatedTokenAddressSync(new PublicKey(slugged.ca), new PublicKey(account), true, owner.owner)
 const ataAiMaybe = connection.getAccountInfo(ata)
 
-if (!ataAiMaybe) {
+if (ataAiMaybe == undefined) {
 console.log('soryr no bs')
   
   const response: ActionPostResponse = {
