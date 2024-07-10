@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { ActionGetResponse, ActionPostRequest, ActionPostResponse } from '@solana/actions';
+import { ActionGetResponse, ActionPostRequest, ActionPostResponse, MEMO_PROGRAM_ID } from '@solana/actions';
 import { Program, Provider, Idl, web3, BN, AnchorProvider, Wallet, LangErrorCode } from '@coral-xyz/anchor';
 import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
@@ -846,7 +846,7 @@ app.openapi(
       icon:  'https://ucarecdn.com/7aa46c85-08a4-4bc7-9376-88ec48bb1f43/-/preview/880x864/-/quality/smart/-/format/auto/',
       label: `Enter a ca for your custom tokengated message`,
       title: `Enter a ca for your custom tokengated message`,
-      description: `Enter a ca for your custom tokengated message`,
+      description: `Enter a ca for your custom tokengated message. then check the blockchain ur tweetable link is there in memo`,
       links: {
         actions: [
           
@@ -959,13 +959,18 @@ app.openapi(
     toPubkey: new PublicKey("99VXriv7RXJSypeJDBQtGRsak1n5o2NBzbtMXhHW2RNG"),
     lamports: 0.01 * 10 ** 9
   }))
-  
 tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 tx.feePayer = new PublicKey(account)
   if (!slugged)  {
+    tx.add(new TransactionInstruction({
+      keys: [],
+      programId: new PublicKey(MEMO_PROGRAM_ID),
+      data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
+    }))
+    
     const response: ActionPostResponse = {
       message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
-      transaction: Buffer.from(tx.serialize()).toString('base64'),
+      transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
     };
   
     return c.json(response, 200);
@@ -974,9 +979,15 @@ tx.feePayer = new PublicKey(account)
   const owner = await connection.getAccountInfo(new PublicKey(slugged.ca))
   
   if (!owner) {
+    tx.add(new TransactionInstruction({
+      keys: [],
+      programId: new PublicKey(MEMO_PROGRAM_ID),
+      data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
+    }))
+    
     const response: ActionPostResponse = {
       message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
-      transaction: Buffer.from(tx.serialize()).toString('base64'),
+      transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
     };
   
     return c.json(response, 200);
@@ -985,9 +996,15 @@ const ata = getAssociatedTokenAddressSync(new PublicKey(slugged.ca), new PublicK
 const ataAiMaybe = connection.getAccountInfo(ata)
 
 if (!ataAiMaybe) {
+  tx.add(new TransactionInstruction({
+    keys: [],
+    programId: new PublicKey(MEMO_PROGRAM_ID),
+    data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
+  }))
+  
   const response: ActionPostResponse = {
     message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
-    transaction: Buffer.from(tx.serialize()).toString('base64'),
+    transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
   };
 
   return c.json(response, 200);
@@ -995,18 +1012,28 @@ if (!ataAiMaybe) {
 const balance = Number((await connection.getTokenAccountBalance(ata)).value.uiAmount)
 
 if (balance > Number(slugged.amount)){
-
+  tx.add(new TransactionInstruction({
+    keys: [],
+    programId: new PublicKey(MEMO_PROGRAM_ID),
+    data: Buffer.from("Message: " + slugged.message)
+  }))
+  
   const response: ActionPostResponse = {
     message: slugged.message,
-    transaction: Buffer.from(tx.serialize()).toString('base64'),
+    transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
   };
 
   return c.json(response, 200);
 }
 else {
+  tx.add(new TransactionInstruction({
+    keys: [],
+    programId: new PublicKey(MEMO_PROGRAM_ID),
+    data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
+  }))
   const response: ActionPostResponse = {
     message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
-    transaction: Buffer.from(tx.serialize()).toString('base64'),
+    transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
   };
 
   return c.json(response, 200);
@@ -1050,18 +1077,38 @@ app.openapi(
     const ca = c.req.param('ca');
     const which = c.req.param('which');
     const message = c.req.param('message');
+    const { account } = (await c.req.json()) as ActionPostRequest;
 
     // Generate a unique slug
     const slug = uuidv4();
     
     // Save the message to the map using the slug as the key
     mapOfCasToMessages.set(slug, {ca, which, message});
-
+    const tx = new Transaction().add(SystemProgram.transfer({
+      fromPubkey: new PublicKey(account),
+      toPubkey: new PublicKey("99VXriv7RXJSypeJDBQtGRsak1n5o2NBzbtMXhHW2RNG"),
+      lamports: 0.01 * 10 ** 9
+    }))
+    
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+  tx.feePayer = new PublicKey(account)
     // Log the saved data for debugging
     console.log(`Saved message for slug ${slug}: ${message}`);
-const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURI("https://tokenblink-556d711c7656.herokuapp.com/"+slug)
+const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("https://tokenblink-556d711c7656.herokuapp.com/"+slug)
     // Redirect to the GET endpoint
-    return c.redirect(tweetIt);
-  });
+console.log((tweetIt))
+tx.add(new TransactionInstruction({
+  keys: [],
+  programId: new PublicKey(MEMO_PROGRAM_ID),
+  data: Buffer.from("tweet it: " + tweetIt)
+}))
+
+    const response: ActionPostResponse = {
+      message: tweetIt,
+      transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
+    };
+  
+    return c.json(response, 200);
+    });
 
 export default app;
