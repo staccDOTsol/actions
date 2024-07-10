@@ -932,7 +932,7 @@ const mapOfCasToMessages = new Map()
 app.openapi(
   createRoute({
     method: 'post',
-    path: '/slug/{slug',
+    path: '/slug/{slug}',
     tags: ['Degen Swap'],
     request: {
       params:   z.object({
