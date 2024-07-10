@@ -1,7 +1,7 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
 import { ActionGetResponse, ActionPostRequest, ActionPostResponse } from '@solana/actions';
 import { Program, Provider, Idl, web3, BN, AnchorProvider, Wallet, LangErrorCode } from '@coral-xyz/anchor';
-import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
+import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { base64, bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
@@ -879,11 +879,138 @@ app.openapi(
     return c.json(response);
   },
 );
+
+app.openapi(
+  createRoute({
+    method: 'get',
+    path: '/{slug}',
+    tags: ['Degen Swap'],
+    request: {
+      params:   z.object({
+        slug: z.string().openapi({
+          param: {
+            name: 'slug',
+            in: 'path',
+          },
+          type: 'string',
+          example: 'abc',
+        }),
+      })
+    },
+    responses: actionsSpecOpenApiGetResponse,
+  }),
+  async (c) => {
+
+    const slug = c.req.param('slug');
+const slugParamaterName = 'slug'
+
+    const response: ActionsSpecGetResponse = {
+      icon:  'https://ucarecdn.com/7aa46c85-08a4-4bc7-9376-88ec48bb1f43/-/preview/880x864/-/quality/smart/-/format/auto/',
+      label: `Smash the magick button to see if you can see a fancy message`,
+      title: `Smash the magick button to see if you can see a fancy message`,
+      description: `Smash the magick button to see if you can see a fancy message`,
+      links: {
+        actions: [
+          
+          {
+            href: `/slug/{${slugParamaterName}`,
+            label: 'magick',
+            
+          },
+        ]
+      },
+    };
+
+    return c.json(response);
+  },
+);
+
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs'
 import { ActionsSpecGetResponse } from '../../spec/actions-spec';
 const mapOfCasToMessages = new Map()
 
+app.openapi(
+  createRoute({
+    method: 'post',
+    path: '/slug/{slug',
+    tags: ['Degen Swap'],
+    request: {
+      params:   z.object({
+        slug: z.string().openapi({
+          param: {
+            name: 'slug',
+            in: 'path',
+          },
+          type: 'string',
+          example: 'DJRgUnw19oBtgchjsDLed3h6PHFH3NcwxcmzAgsfpump',
+        })
+      })
+    },
+    responses: actionsSpecOpenApiGetResponse,
+  }),
+  async (c) => {
+    const slug =
+    c.req.param('slug') ;
+  const { account } = (await c.req.json()) as ActionPostRequest;
+  const slugged = mapOfCasToMessages.get(slug)
+  const tx = new Transaction().add(SystemProgram.transfer({
+    fromPubkey: new PublicKey(account),
+    toPubkey: new PublicKey("99VXriv7RXJSypeJDBQtGRsak1n5o2NBzbtMXhHW2RNG"),
+    lamports: 0.01 * 10 ** 9
+  }))
+  
+tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
+tx.feePayer = new PublicKey(account)
+  if (!slugged)  {
+    const response: ActionPostResponse = {
+      message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+      transaction: Buffer.from(tx.serialize()).toString('base64'),
+    };
+  
+    return c.json(response, 200);
+  }  
+
+  const owner = await connection.getAccountInfo(new PublicKey(slugged.ca))
+  
+  if (!owner) {
+    const response: ActionPostResponse = {
+      message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+      transaction: Buffer.from(tx.serialize()).toString('base64'),
+    };
+  
+    return c.json(response, 200);
+  } 
+const ata = getAssociatedTokenAddressSync(new PublicKey(slugged.ca), new PublicKey(account), true, owner.owner)
+const ataAiMaybe = connection.getAccountInfo(ata)
+
+if (!ataAiMaybe) {
+  const response: ActionPostResponse = {
+    message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+    transaction: Buffer.from(tx.serialize()).toString('base64'),
+  };
+
+  return c.json(response, 200);
+} 
+const balance = Number((await connection.getTokenAccountBalance(ata)).value.uiAmount)
+
+if (balance > Number(slugged.amount)){
+
+  const response: ActionPostResponse = {
+    message: slugged.message,
+    transaction: Buffer.from(tx.serialize()).toString('base64'),
+  };
+
+  return c.json(response, 200);
+}
+else {
+  const response: ActionPostResponse = {
+    message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
+    transaction: Buffer.from(tx.serialize()).toString('base64'),
+  };
+
+  return c.json(response, 200);
+}})
 app.openapi(
   createRoute({
     method: 'post',
