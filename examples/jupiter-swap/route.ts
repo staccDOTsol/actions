@@ -1,14 +1,17 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { actionSpecOpenApiPostRequestBody, actionsSpecOpenApiGetResponse, actionsSpecOpenApiPostResponse } from '../openapi';
-import { ActionsSpecErrorResponse, ActionsSpecGetResponse, ActionsSpecPostRequestBody, ActionsSpecPostResponse } from '../../spec/actions-spec';
+import { ActionGetResponse, ActionPostRequest, ActionPostResponse } from '@solana/actions';
 import { Program, Provider, Idl, web3, BN, AnchorProvider, Wallet, LangErrorCode } from '@coral-xyz/anchor';
-import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
+import { AddressLookupTableAccount, ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY, TransactionInstruction, TransactionMessage, VersionedTransaction } from '@solana/web3.js';
 import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { base64, bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import {
+  actionSpecOpenApiPostRequestBody,
+  actionsSpecOpenApiGetResponse,
+  actionsSpecOpenApiPostResponse,
+} from '../openapi';
 import { ChartConfiguration, ChartType } from 'chart.js';
 const fetch = require('node-fetch');
-const sharp = require('sharp');
 import FormData from 'form-data';
 import imgur from 'imgur';
 const Imgur = new imgur({
@@ -16,7 +19,18 @@ const Imgur = new imgur({
   clientSecret:'6ea80630f383c1316d820e46264d589e104cd8a8'
 })
 const { ChartConfiguration } = require( "chart.js" );
+import jupiterApi from './jupiter-api';
+import { createJupiterApiClient } from '@jup-ag/api';
 
+const jupiterQuoteApi = createJupiterApiClient(); // config is optional
+
+const SWAP_AMOUNT_USD_OPTIONS_USD = [10, 100, 1000];
+const DEFAULT_SWAP_AMOUNT_USD = 10;
+const US_DOLLAR_FORMATTING = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  maximumFractionDigits: 0,
+});
 // Chart generation setup
 const width = 800;
 const height = 600;
@@ -710,7 +724,7 @@ import 'chartjs-adapter-date-fns'; // Import the date adapter
 import path from 'path';
 
 // Connection and program setup
-const connection = new Connection(process.env.NEXT_PUBLIC_RPC_URL as string);
+const connection = new Connection(process.env.NEXT_PUBLIC_MAINNET_RPC_URL as string);
 const feeRecipient = new PublicKey("CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM");
 const global = new PublicKey("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf");
 const provider = new AnchorProvider(connection, new Wallet(Keypair.generate()), {});
@@ -813,6 +827,13 @@ app.openapi(
     const latestCoin = await getLatestPumpFunCoin();
     const kothCoin = await getKingOfTheHillCoin();
     const amountParameterName = 'amount';
+
+    const messageParamaterName = 'message';
+
+    const caParamaterName = 'ca';
+
+    
+
     const dt = new Date().getTime();
     const candlestickData = await getCandlestickData(latestCoin.mint);
     const candlestickData2 = await getCandlestickData(kothCoin.mint);
@@ -822,20 +843,35 @@ app.openapi(
 
 
     const response: ActionsSpecGetResponse = {
-      icon: 'data:image/png;base64,' + i1.image.toString('base64'), // Ensure correct MIME type
-      label: `Swap ${kothCoin.name} or ${latestCoin.name}`,
-      title: `Swap ${kothCoin.name} or ${latestCoin.name}`,
-      description: `Swap most recent KOTH ${kothCoin.name} or most recent coin ${latestCoin.name} with SOL. Choose a SOL amount of either from the options below, or enter a custom amount.`,
+      icon:  'https://ucarecdn.com/7aa46c85-08a4-4bc7-9376-88ec48bb1f43/-/preview/880x864/-/quality/smart/-/format/auto/',
+      label: `Enter a ca for your custom tokengated message`,
+      title: `Enter a ca for your custom tokengated message`,
+      description: `Enter a ca for your custom tokengated message`,
       links: {
         actions: [
-          ...SWAP_AMOUNT_USD_OPTIONS.map((amount) => ({
-            label: `${amount} ${kothCoin.name}`,
-            href: `/buy/${kothCoin.mint}/${amount}`,
-          })),
-          ...SWAP_AMOUNT_USD_OPTIONS.map((amount) => ({
-            label: `${amount} ${latestCoin.name}`,
-            href: `/buy/${latestCoin.mint}/${amount}`,
-          }))
+          
+          {
+            href: `/{${caParamaterName}}/1/{${messageParamaterName}}`,
+            label: 'new message w your CA',
+            parameters: [
+              {
+                name: caParamaterName,
+                label: 'CA...',
+              },
+              // @ts-ignore
+              {
+                name: amountParameterName,
+                label: 'amount...'
+              },
+              // @ts-ignore
+              {
+                name: messageParamaterName,
+                label: 'message...'
+              },
+              
+
+            ],
+          },
         ]
       },
     };
@@ -843,262 +879,62 @@ app.openapi(
     return c.json(response);
   },
 );
+import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs'
+import { ActionsSpecGetResponse } from '../../spec/actions-spec';
+const mapOfCasToMessages = new Map()
+
 app.openapi(
   createRoute({
-    method: 'get',
-    path: '/{coin}',
+    method: 'post',
+    path: '/{ca}/{which}/{message}',
     tags: ['Degen Swap'],
     request: {
-      params: z.object({
-        coin: z.string().openapi({
+      params:   z.object({
+        ca: z.string().openapi({
           param: {
-            name: 'coin',
+            name: 'ca',
             in: 'path',
           },
           type: 'string',
           example: 'DJRgUnw19oBtgchjsDLed3h6PHFH3NcwxcmzAgsfpump',
         }),
+        which: z.string().openapi({
+          param: {
+            name: 'which',
+            in: 'path',
+          },
+          type: 'string',
+          example: '1',
+        }),
+      message: z.string().openapi({
+        param: {
+          name: 'message',
+          in: 'path',
+        },
+        type: 'string',
+        example: 'Your custom message here',
+      }),
       })
     },
     responses: actionsSpecOpenApiGetResponse,
   }),
   async (c) => {
-    const mint = c.req.param('coin');
-    const amountParameterName = 'amount';
-    const dt = new Date().getTime();
-    const candlestickData = await getCandlestickData(mint as string);
+    const ca = c.req.param('ca');
+    const which = c.req.param('which');
+    const message = c.req.param('message');
 
-    const image1 = await generateCandlestickChart(mint, candlestickData) as any
-
-
-  const coin = await(await fetch("https://frontend-api.pump.fun/coins/"+mint)).json()
-
-  const response: ActionsSpecGetResponse = {
-    icon: 'data:image/png;base64,' + image1.image.toString('base64'), // Ensure correct MIME type
-    label: `Swap ${coin.name}`,
-      title: `Swap ${coin.name}`,
-      description: `Swap ${coin.name} with SOL. Choose a SOL amount of either from the options below, or enter a custom amount.`,
-      links: {
-        actions: [
-          ...SWAP_AMOUNT_USD_OPTIONS.map((amount) => ({
-            label: `${amount}`,
-            href: `/buy/${coin.mint}/${amount}`,
-          })),
-          {
-            href: `/buy/${coin.mint}/{${amountParameterName}}`,
-
-            label: `Buy ${coin.name}`,
-            parameters: [
-              {
-                name: amountParameterName,
-                label: 'Enter a custom SOL amount',
-              },
-            ],
-          },
-          {
-            href: `/sell/${coin.mint}/{${amountParameterName}}`,
-            label: `Sell ${coin.name}`,
-            parameters: [
-              {
-                name: amountParameterName,
-                label: 'Enter a custom SOL amount',
-              },
-            ],
-          },
-        ],
-      },
-    };
-
-    return c.json(response);
-  },
-);
-
-
-app.openapi(
-  createRoute({
-    method: 'post',
-    path: '/buy/{tokenPair}/{amount}',
-    tags: ['Pump Buy'],
-    request: {
-      params: z.object({
-        tokenPair: z.string().openapi({
-          param: {
-            name: 'tokenPair',
-            in: 'path',
-          },
-          type: 'string',
-          example: 'DJRgUnw19oBtgchjsDLed3h6PHFH3NcwxcmzAgsfpump',
-        }),
-        amount: z
-          .string()
-          .optional()
-          .openapi({
-            param: {
-              name: 'amount',
-              in: 'path',
-              required: false,
-            },
-            type: 'number',
-            example: '1',
-          }),
-      }),
-      body: actionSpecOpenApiPostRequestBody,
-    },
-    responses: actionsSpecOpenApiPostResponse,
-  }),
-  async (c) => {
+    // Generate a unique slug
+    const slug = uuidv4();
     
-    const mint = c.req.param('tokenPair');
-    const candlestickData = await getCandlestickData(mint)
-    
-    const amount = c.req.param('amount') ?? "1";
-    const { account } = (await c.req.json()) as ActionsSpecPostRequestBody;
-    const maxSolCost = Number.MAX_SAFE_INTEGER;
-    const mintPublicKey = new PublicKey(mint);
-    const userPublicKey = new PublicKey(account);
+    // Save the message to the map using the slug as the key
+    mapOfCasToMessages.set(slug, {ca, which, message});
 
-    const bondingCurvePublicKey = PublicKey.findProgramAddressSync(
-      [Buffer.from('bonding-curve'), mintPublicKey.toBuffer()],
-      program.programId
-    )[0];
-
-    const associatedBondingCurvePublicKey = getAssociatedTokenAddressSync(
-      mintPublicKey,
-      bondingCurvePublicKey,
-      true
-    );
-
-    const associatedUser = await getAssociatedTokenAddressSync(mintPublicKey, userPublicKey)
-    const auAiMaybe = await connection.getAccountInfo(associatedUser)
-    const preixs = [ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 333333 }),
-      SystemProgram.transfer({
-        fromPubkey: userPublicKey,
-        toPubkey: new PublicKey("Czbmb7osZxLaX5vGHuXMS2mkdtZEXyTNKwsAUUpLGhkG"),
-        lamports: 0.01 * 10 ** 9,
-      })]
-    if (auAiMaybe == undefined){
-      preixs.push(createAssociatedTokenAccountInstruction(
-        new PublicKey(account),
-        associatedUser,
-        new PublicKey(account),
-        mintPublicKey
-      ))
-    }
-
-    const transaction = await program.methods.buy((new BN(Number(Math.floor(Number(amount)/ (candlestickData[candlestickData.length-1].close )*10**6)))), new BN(maxSolCost)).accounts({
-      global,
-      feeRecipient,
-      mint: mintPublicKey,
-      bondingCurve: bondingCurvePublicKey,
-      associatedBondingCurve: associatedBondingCurvePublicKey,
-      associatedUser,
-      user: userPublicKey,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-    })
-      .preInstructions(preixs)
-      .transaction();
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
-      transaction.feePayer = new PublicKey(account)
-
-    const serializedTransaction = transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
-
-    const response: ActionsSpecPostResponse = {
-      transaction: serializedTransaction.toString('base64')
-    };
-    return c.json(response);
-  },
-);
-
-app.openapi(
-  createRoute({
-    method: 'post',
-    path: '/sell/{tokenPair}/{amount}',
-    tags: ['Pump Sell'],
-    request: {
-      params: z.object({
-        tokenPair: z.string().openapi({
-          param: {
-            name: 'tokenPair',
-            in: 'path',
-          },
-          type: 'string',
-          example: 'DJRgUnw19oBtgchjsDLed3h6PHFH3NcwxcmzAgsfpump',
-        }),
-        amount: z
-          .string()
-          .optional()
-          .openapi({
-            param: {
-              name: 'amount',
-              in: 'path',
-              required: false,
-            },
-            type: 'number',
-            example: '1',
-          }),
-      }),
-      body: actionSpecOpenApiPostRequestBody,
-    },
-    responses: actionsSpecOpenApiPostResponse,
-  }),
-  async (c) => {
-    
-    const mint = c.req.param('tokenPair');
-    const candlestickData = await getCandlestickData(mint)
-
-    const amount = c.req.param('amount') ?? "1";
-    const { account } = (await c.req.json()) as ActionsSpecPostRequestBody;
-    const minSolOutput = 0;
-    const mintPublicKey = new PublicKey(mint);
-    const userPublicKey = new PublicKey(account);
-
-
-    const bondingCurvePublicKey = PublicKey.findProgramAddressSync(
-      [Buffer.from('bonding-curve'), mintPublicKey.toBuffer()],
-      program.programId
-    )[0];
-
-    const associatedBondingCurvePublicKey = getAssociatedTokenAddressSync(
-      mintPublicKey,
-      bondingCurvePublicKey,
-      true
-    );
-
-    const transaction = await program.methods.sell(new BN((Number(Math.floor(Number(amount) / (candlestickData[candlestickData.length-1].close) * 10 ** 6)))), new BN(0)).accounts({
-      global,
-      feeRecipient,
-      mint: mintPublicKey,
-      bondingCurve: bondingCurvePublicKey,
-      associatedBondingCurve: associatedBondingCurvePublicKey,
-      associatedUser: await getAssociatedTokenAddressSync(mintPublicKey, userPublicKey),
-      user: userPublicKey,
-      systemProgram: SystemProgram.programId,
-      tokenProgram: TOKEN_PROGRAM_ID,
-      rent: SYSVAR_RENT_PUBKEY,
-    })
-      .preInstructions([
-        ComputeBudgetProgram.setComputeUnitPrice({ microLamports: 333333 }),
-        SystemProgram.transfer({
-          fromPubkey: userPublicKey,
-          toPubkey: new PublicKey("Czbmb7osZxLaX5vGHuXMS2mkdtZEXyTNKwsAUUpLGhkG"),
-          lamports: 0.01 * 10 ** 9,
-        }),
-      ])
-      .transaction();
-
-      transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
-      transaction.feePayer = new PublicKey(account)
-
-    const serializedTransaction = transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
-
-    const response: ActionsSpecPostResponse = {
-      transaction: serializedTransaction.toString('base64')
-    };
-    return c.json(response);
-  },
-);
+    // Log the saved data for debugging
+    console.log(`Saved message for slug ${slug}: ${message}`);
+const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURI("https://tokenblink-556d711c7656.herokuapp.com/"+slug)
+    // Redirect to the GET endpoint
+    return c.redirect(tweetIt);
+  });
 
 export default app;

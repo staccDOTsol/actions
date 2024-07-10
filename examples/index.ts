@@ -3,7 +3,7 @@ import donate from './donate/route';
 import jupiterSwap from './jupiter-swap/route';
 import { cors } from 'hono/cors';
 import { swaggerUI } from '@hono/swagger-ui';
-import { OpenAPIHono } from '@hono/zod-openapi';
+import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi';
 import { serveStatic } from 'hono/serve-static';
 
 const app = new OpenAPIHono();
@@ -25,10 +25,10 @@ app.use('/public/*', serveStatic({
   }
 }));
 
+
 // <--Actions-->
 app.route('/', jupiterSwap);
 // </--Actions-->
-
 app.doc('/doc', {
   info: {
     title: 'An API',
