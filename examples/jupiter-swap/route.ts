@@ -1005,8 +1005,19 @@ console.log('soryr no bs')
 
   return c.json(response, 200);
 } 
-const balance = Number((await connection.getTokenAccountBalance(ata)).value.uiAmount)
+let balance: number = 0
+try {
+ balance = Number((await connection.getTokenAccountBalance(ata)).value.uiAmount)
+}
+catch (err){
+  
+  const response: ActionPostResponse = {
+    message: "Sorry, " + slugged.which + ' ' + slugged.ca + ' required!',
+    transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
+  };
 
+  return c.json(response, 200);
+}
 if (balance > Number(slugged.which)){
   console.log('balance')
   const response: ActionPostResponse = {
@@ -1025,6 +1036,7 @@ else {
   };
 
   return c.json(response, 200);
+
 }})
 app.openapi(
   createRoute({
