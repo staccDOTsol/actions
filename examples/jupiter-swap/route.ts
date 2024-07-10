@@ -846,7 +846,7 @@ app.openapi(
       icon:  'https://ucarecdn.com/7aa46c85-08a4-4bc7-9376-88ec48bb1f43/-/preview/880x864/-/quality/smart/-/format/auto/',
       label: `Enter a ca for your custom tokengated message`,
       title: `Enter a ca for your custom tokengated message`,
-      description: `Enter a ca for your custom tokengated message. then check the blockchain ur tweetable link is there in memo`,
+      description: `Enter a ca for your custom tokengated message. `,
       links: {
         actions: [
           
@@ -962,11 +962,7 @@ app.openapi(
 tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash
 tx.feePayer = new PublicKey(account)
   if (!slugged)  {
-    tx.add(new TransactionInstruction({
-      keys: [],
-      programId: new PublicKey(MEMO_PROGRAM_ID),
-      data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
-    }))
+   
     
     const response: ActionPostResponse = {
       message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
@@ -979,11 +975,6 @@ tx.feePayer = new PublicKey(account)
   const owner = await connection.getAccountInfo(new PublicKey(slugged.ca))
   
   if (!owner) {
-    tx.add(new TransactionInstruction({
-      keys: [],
-      programId: new PublicKey(MEMO_PROGRAM_ID),
-      data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
-    }))
     
     const response: ActionPostResponse = {
       message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
@@ -996,11 +987,7 @@ const ata = getAssociatedTokenAddressSync(new PublicKey(slugged.ca), new PublicK
 const ataAiMaybe = connection.getAccountInfo(ata)
 
 if (!ataAiMaybe) {
-  tx.add(new TransactionInstruction({
-    keys: [],
-    programId: new PublicKey(MEMO_PROGRAM_ID),
-    data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
-  }))
+
   
   const response: ActionPostResponse = {
     message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
@@ -1012,11 +999,6 @@ if (!ataAiMaybe) {
 const balance = Number((await connection.getTokenAccountBalance(ata)).value.uiAmount)
 
 if (balance > Number(slugged.amount)){
-  tx.add(new TransactionInstruction({
-    keys: [],
-    programId: new PublicKey(MEMO_PROGRAM_ID),
-    data: Buffer.from("Message: " + slugged.message)
-  }))
   
   const response: ActionPostResponse = {
     message: slugged.message,
@@ -1026,11 +1008,7 @@ if (balance > Number(slugged.amount)){
   return c.json(response, 200);
 }
 else {
-  tx.add(new TransactionInstruction({
-    keys: [],
-    programId: new PublicKey(MEMO_PROGRAM_ID),
-    data: Buffer.from("Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!'),
-  }))
+ 
   const response: ActionPostResponse = {
     message: "Sorry, " + slugged.amount + ' ' + slugged.ca + ' required!',
     transaction: Buffer.from(tx.serialize({requireAllSignatures: false, verifySignatures: false})).toString('base64'),
@@ -1097,11 +1075,7 @@ app.openapi(
 const tweetIt = "https://twitter.com/intent/tweet?text=" + encodeURIComponent("https://tokenblink-556d711c7656.herokuapp.com/"+slug)
     // Redirect to the GET endpoint
 console.log((tweetIt))
-tx.add(new TransactionInstruction({
-  keys: [],
-  programId: new PublicKey(MEMO_PROGRAM_ID),
-  data: Buffer.from("tweet it: " + tweetIt)
-}))
+
 
     const response: ActionPostResponse = {
       message: tweetIt,
