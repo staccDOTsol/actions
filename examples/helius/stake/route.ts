@@ -20,206 +20,72 @@ app.openapi(createRoute({
   path: '/',
   tags: ['Helius Stake'],
   responses: actionsSpecOpenApiGetResponse,
-}), c => {
-  const [inputToken, outputToken] = ['SOL', 'hSOL'];
-  const [inputTokenMeta, outputTokenMeta] = [
-    LstList.find(
-      (it: LST) => it.symbol.toLowerCase() === inputToken.toLowerCase(),
-    ),
-    LstList.find(
-      (it: LST) => it.symbol.toLowerCase() === outputToken.toLowerCase(),
-    ),
-  ];
+}), (c:any) => {
+  return c.html(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Upload Platform</title>
+  <script src="https://cdn.jsdelivr.net/npm/@solana/web3.js@1.28.0/lib/index.iife.min.js"></script>
+</head>
+<body>
+  <h1>Video Upload Platform</h1>
+  <form id="upload-form">
+    <input type="file" id="video-file" accept="video/*" required>
+    <button type="button" onclick="uploadVideo()">Upload Video</button>
+  </form>
+  <script>
+    const connection = new solanaWeb3.Connection(solanaWeb3.clusterApiUrl('devnet'));
 
-  if (!inputTokenMeta || !outputTokenMeta) {
-    console.error(
-      `Token metadata not found for ${inputToken} or ${outputToken}`,
-    );
-    return c.json(
-      {
-        message: 'Invalid token pair',
-      } satisfies ActionError,
-      {
-        status: 400,
-      },
-    );
-  }
+    async function uploadVideo() {
+      const fileInput = document.getElementById('video-file');
+      if (!fileInput.files.length) return alert('Please select a video file.');
 
-  const amountParameterName = 'amount';
-  const response: ActionGetResponse = {
-    icon: HELIUS_ACTION_ICON,
-    label: `Buy ${outputTokenMeta.symbol}`,
-    title: `Buy ${outputTokenMeta.symbol}`,
-    description: `The LST of Helius, the leading developer platform on Solana`,
-    links: {
-      actions: [
-        ...SWAP_AMOUNT_SOL_OPTIONS.map((amount) => ({
-          label: `${amount} SOL`,
-          href: `/api/helius/stake/${amount}`,
-        })),
-        {
-          href: `/api/helius/stake/{${amountParameterName}}`,
-          label: `Buy ${outputTokenMeta.symbol}`,
-          parameters: [
-            {
-              name: amountParameterName,
-              label: 'Enter a SOL amount',
-            },
-          ],
-        },
-      ],
-    },
-  };
+      const videoFile = fileInput.files[0];
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(videoFile);
 
-  return c.json(response);
-});
+      reader.onload = async () => {
+        const account = await window.solana.connect();
+        const publicKey = account.publicKey.toString();
+        
+        // Create a form data object
+        const formData = new FormData();
+        formData.append('video', videoFile);
+        formData.append('account', publicKey);
 
-app.openapi(createRoute({
-  method: 'get',
-  path: '/{amount}',
-  tags: ['Helius Stake'],
-  request: {
-    params: z.object({
-      amount: z
-        .string()
-        .optional()
-        .openapi({
-          param: {
-            name: 'amount',
-            in: 'path',
-            required: true,
-          },
-          type: 'number',
-          example: '1',
-        }),
-    }),
-  },
-  responses: actionsSpecOpenApiGetResponse,
-}), c => {
-  const [inputToken, outputToken] = ['SOL', 'hSOL'];
-  const [inputTokenMeta, outputTokenMeta] = [
-    LstList.find(
-      (it: LST) => it.symbol.toLowerCase() === inputToken.toLowerCase(),
-    ),
-    LstList.find(
-      (it: LST) => it.symbol.toLowerCase() === outputToken.toLowerCase(),
-    ),
-  ];
+        // Send the video and account details to the backend
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData
+        });
 
-  if (!inputTokenMeta || !outputTokenMeta) {
-    console.error(
-      `Token metadata not found for ${inputToken} or ${outputToken}`,
-    );
-    return c.json(
-      {
-        message: 'Invalid token pair',
-      } satisfies ActionError,
-      {
-        status: 400,
-      },
-    );
-  }
+        const result = await response.json();
+        if (result.error) {
+          alert('Error: ' + result.error);
+        } else {
+          // Sign the transaction with the user's wallet
+          const transaction = solanaWeb3.Transaction.from(Buffer.from(result.transaction, 'base64'));
+          const signed = await window.solana.signTransaction(transaction);
+          const signature = await connection.sendRawTransaction(signed.serialize());
+          await connection.confirmTransaction(signature);
 
-  const response: ActionGetResponse = {
-    icon: HELIUS_ACTION_ICON,
-    label: `Buy ${outputTokenMeta.symbol}`,
-    title: `Buy ${outputTokenMeta.symbol}`,
-    description: `The LST of Helius, the leading developer platform on Solana`,
-  };
-
-  return c.json(response);
-});
-
-app.openapi(createRoute({
-  method: 'post',
-  path: '/{amount}',
-  tags: ['Helius Stake'],
-  request: {
-    params: z.object({
-      amount: z
-        .string()
-        .optional()
-        .openapi({
-          param: {
-            name: 'amount',
-            in: 'path',
-            required: true,
-          },
-          type: 'number',
-          example: '1',
-        }),
-    }),
-    body: actionSpecOpenApiPostRequestBody,
-  },
-  responses: actionsSpecOpenApiPostResponse,
-}), async (c) => {
-  try {
-    const amount = c.req.param('amount') ?? DEFAULT_SWAP_AMOUNT_SOL.toString();
-    const { account } = (await c.req.json()) as ActionPostRequest;
-
-    const [inputToken, outputToken] = ['SOL', 'hSOL'];
-    const [inputTokenMeta, outputTokenMeta] = [
-      LstList.find(
-        (it: LST) => it.symbol.toLowerCase() === inputToken.toLowerCase(),
-      ),
-      LstList.find(
-        (it: LST) => it.symbol.toLowerCase() === outputToken.toLowerCase(),
-      ),
-    ];
-
-    if (!inputTokenMeta || !outputTokenMeta) {
-      return c.json(
-        {
-          message: `Token metadata not found.`,
-        } satisfies ActionError,
-        {
-          status: 422,
-        },
-      );
+          alert('Video uploaded successfully. Transaction signature: ' + signature);
+        }
+      };
     }
 
-    const tokenAmount = parseFloat(amount);
-    const tokenAmountFractional = Math.ceil(
-      tokenAmount * 10 ** inputTokenMeta.decimals,
-    );
-    console.log(
-      `Swapping ${tokenAmountFractional} ${inputTokenMeta.symbol} to ${outputTokenMeta.symbol}    
-    ${inputTokenMeta.symbol} amount: ${amount}
-    token amount fractional: ${tokenAmountFractional}`,
-    );
-
-    const quote = await jupiterApi.quoteGet({
-      inputMint: inputTokenMeta.mint,
-      outputMint: outputTokenMeta.mint,
-      amount: tokenAmountFractional,
-      autoSlippage: true,
-      maxAutoSlippageBps: 500, // 5%,
-    });
-    const swapResponse = await jupiterApi.swapPost({
-      swapRequest: {
-        quoteResponse: quote,
-        userPublicKey: account,
-        prioritizationFeeLamports: 'auto',
-      },
-    });
-    const response: ActionPostResponse = {
-      transaction: swapResponse.swapTransaction,
+    // Connect to the wallet on page load
+    window.onload = async () => {
+      if (window.solana) {
+        await window.solana.connect();
+      } else {
+        alert('Please install a Solana wallet like Phantom.');
+      }
     };
-    return c.json(response);
-  } catch (e) {
-    console.error(
-      `Failed to prepare swap tx for hSOL stale`,
-      e,
-    );
-    return c.json(
-      {
-        message: `Failed to prepare transaction`,
-      } as ActionPostResponse,
-      {
-        status: 500,
-      },
-    );
-  }
-});
+  </script>
+</body>
+</html>`)});
 
 export default app;
