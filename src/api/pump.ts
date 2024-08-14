@@ -3,6 +3,7 @@ import { Buffer } from 'buffer';
 // @ts-ignore
 import IPFS from 'ipfs-infura';
 import imgur from 'imgur';
+// @ts-ignore
 import fetch from 'node-fetch';
 
 const projectId = '2XjChM8WMK9UTvZENIfZH9ggTup';

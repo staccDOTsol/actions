@@ -14,8 +14,7 @@ import FormData from 'form-data';
 import imgur from 'imgur';
 import 'chartjs-adapter-date-fns';
 import path from 'path';
-import fs from 'fs';
-
+    
 const Imgur = new imgur({
   clientId: '06f787d29bb77bf',
   clientSecret: '6ea80630f383c1316d820e46264d589e104cd8a8'

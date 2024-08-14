@@ -27,6 +27,7 @@
     "form-data": "^4.0.0",
     "imgur": "^2.4.2",
     "ipfs-infura": "^1.1.9",
+    "node-fetch": "2",
     "vite-plugin-node-polyfills": "^0.22.0",
     "vite-plugin-node-stdlib-browser": "^0.2.1",
     "vue": "^3.4.29"
