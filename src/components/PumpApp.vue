@@ -730,10 +730,10 @@ interface Coin {
 const chartList = ref<Coin[]>([]);
 const amount = ref(0.1);
 const customAmount = ref(null);
-const connection = new Connection(process.env.NEXT_PUBLIC_RPC_URL as string);
+const connection = new Connection('https://api.mainnet-beta.solana.com');
 const feeRecipient = new PublicKey("CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM");
 const global = new PublicKey("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf");
-const provider = new AnchorProvider(connection, new anchor.Wallet(Keypair.generate()), {});
+const provider = new AnchorProvider(connection);
 const program = new Program(idl as Idl, new PublicKey("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"), provider);
 
 // Function to fetch the latest Pump.fun coin

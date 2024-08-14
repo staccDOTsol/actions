@@ -36,6 +36,5 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <p v-if="!isReady" class="text-center">Loading...</p>
-  <transaction-form v-else-if="canvasClient" :canvas-client="canvasClient" />
+  <pump-app :canvas-client="canvasClient" />
 </template>
