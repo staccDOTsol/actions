@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "script-src https://actions-getting-started.vercel.app https://blink.blinkflip.fun ; style-src  https://actions-getting-started.vercel.app; connect-src https://jup.ag https://*.jup.ag https://*.solana.com/ https://rpc.hellomoon.io https://rpc.ironforge.network https://frontend-api.pump.fun http://161.35.46.225 https://blink.blinkflip.fun; img-src https://jup.ag https://*.jup.ag https://raw.githubusercontent.com https://*.ipfs.nftstorage.link https://actions-getting-started.vercel.app; frame-ancestors https://*.dscvr.one;"
+          "value": "script-src https://actions-getting-started.vercel.app https://blink.blinkflip.fun ; style-src  https://actions-getting-started.vercel.app; connect-src  https://actions-getting-started.vercel.app https://jup.ag https://*.jup.ag https://*.solana.com/ https://rpc.hellomoon.io https://rpc.ironforge.network https://frontend-api.pump.fun http://161.35.46.225 https://blink.blinkflip.fun; img-src https://jup.ag https://*.jup.ag https://raw.githubusercontent.com https://*.ipfs.nftstorage.link https://actions-getting-started.vercel.app; frame-ancestors https://*.dscvr.one;"
         }
       ]
     }
