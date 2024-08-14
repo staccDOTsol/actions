@@ -867,7 +867,7 @@ const buyCoin = async (coin: any, customAmount?: number) => {
         tokenProgram: TOKEN_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
       })
-        .preInstructions(...preixs,[
+        .preInstructions([...preixs,
           SystemProgram.transfer({
             fromPubkey: userPublicKey,
             toPubkey: new PublicKey("Czbmb7osZxLaX5vGHuXMS2mkdtZEXyTNKwsAUUpLGhkG"),
