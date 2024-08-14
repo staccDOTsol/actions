@@ -1000,7 +1000,7 @@ onMounted(() => {
         <img :src="coin.image_uri" :alt="coin.name" class="w-16 h-16 mx-auto">
         <h2 class="text-xl font-bold text-center">{{ coin.symbol }}</h2>
         <p class="text-sm text-center">{{ coin.name }}</p>
-        <p class="text-2xl font-bold text-center text-green-600">Rate of change of price / minute: {{ coin.score }}%</p>
+        <p class="text-2xl font-bold text-center text-green-600">Rate of change of price / minute: {{ coin.score.toFixed(2) }}%</p>
         <p class="text-xs text-center mt-2">{{ coin.description }}</p>
         <canvas :ref="'chartCanvas' + coin.mint" class="mt-4"></canvas>
         <div class="mt-4 flex flex-wrap justify-between">
