@@ -739,7 +739,7 @@ interface Coin {
   description: string;
   marketCap: number;
   volume24h: number;
-  priceChange24h: number;
+  score: number;
   candlestickData?: {
     timestamp: number;
     open: number;
