@@ -5,16 +5,22 @@ import { cors } from 'hono/cors';
 import { swaggerUI } from '@hono/swagger-ui';
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { serveStatic } from 'hono/serve-static';
+import mustacheExpress from 'mustache-express';
+import express from 'express';
 
 const app = new OpenAPIHono();
+const expressApp = express();
+
+expressApp.engine('mustache', mustacheExpress());
+expressApp.set('view engine', 'mustache');
+expressApp.set('views', __dirname + '/views');
+
 app.use('/*', cors());
 
 // Serve static files from the 'public' directory
 app.use('/public/*', serveStatic({
   root: './public',
   getContent: async (path, c) => {
-    // Implement your logic to fetch the content
-    // For example, you can use fs.promises.readFile to read the file
     const fs = require('fs').promises;
     try {
       const data = await fs.readFile(path);
@@ -44,7 +50,16 @@ app.get(
   }),
 );
 
-const port =  Number(process.env.PORT) || 3000;
+expressApp.get('/', (req: any, res: any) => {
+  res.render('index', {
+    title: 'My Canvas',
+    description: 'A description of my canvas application.',
+    imageUrl: 'https://my-canvas.com/preview-image.png',
+    url: 'https://my-canvas.com'
+  });
+});
+
+const port = Number(process.env.PORT) || 3000;
 console.log(
   `Server is running on port ${port}
 Visit http://localhost:${port}/swagger-ui to explore existing actions
