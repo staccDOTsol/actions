@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi';
-import { actionSpecOpenApiPostRequestBody, actionsSpecOpenApiGetResponse, actionsSpecOpenApiPostResponse } from '../openapi';
-import { ActionsSpecErrorResponse, ActionsSpecGetResponse, ActionsSpecPostRequestBody, ActionsSpecPostResponse } from '../../spec/actions-spec';
-import { Program, Provider, Idl, web3, BN, AnchorProvider, Wallet, LangErrorCode } from '@coral-xyz/anchor';
+import { Program,  web3, BN, AnchorProvider, LangErrorCode } from '@coral-xyz/anchor';
+import type { Provider, Idl } from '@coral-xyz/anchor';
+import * as anchor from '@coral-xyz/anchor';
 import { ComputeBudgetProgram, Connection, Keypair, PublicKey, SystemProgram, SYSVAR_RENT_PUBKEY } from '@solana/web3.js';
 import { createAssociatedTokenAccount, createAssociatedTokenAccountInstruction, getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import { base64, bs58 } from '@coral-xyz/anchor/dist/cjs/utils/bytes';
+import { ref, onMounted } from 'vue';
+import Chart from 'chart.js/auto';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
-import { ChartConfiguration, ChartType } from 'chart.js';
+import type { ChartConfiguration, ChartType } from 'chart.js';
 import FormData from 'form-data';
 import imgur from 'imgur';
 import 'chartjs-adapter-date-fns';
@@ -38,7 +40,7 @@ const uploadImageToImgur = async (image: string) => {
     const link = response.data.link;
     cache.set(image, link);
     return link;
-  } catch (error) {
+  } catch (error:any) {
     console.error('Error uploading image to Imgur:', error);
     throw error;
   }
@@ -706,12 +708,67 @@ const idl = {
     "address": "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"
   }
 };
+const errorMessage = ref('');
+const successMessage = ref('');
+interface Coin {
+  mint: string;
+  name: string;
+  symbol: string;
+  price: number;
+  marketCap: number;
+  volume24h: number;
+  priceChange24h: number;
+  candlestickData?: {
+    timestamp: number;
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+  }[];
+}
 
+const chartList = ref<Coin[]>([]);
+const amount = ref(0.1);
+const customAmount = ref(null);
 const connection = new Connection(process.env.NEXT_PUBLIC_RPC_URL as string);
 const feeRecipient = new PublicKey("CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM");
 const global = new PublicKey("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf");
-const provider = new AnchorProvider(connection, new Wallet(Keypair.generate()), {});
+const provider = new AnchorProvider(connection, new anchor.Wallet(Keypair.generate()), {});
 const program = new Program(idl as Idl, new PublicKey("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"), provider);
+
+// Function to fetch the latest Pump.fun coin
+const getLatestPumpFunCoin = async () => {
+  const response = await fetch('https://frontend-api.pump.fun/coins/latest');
+  const data = await response.json();
+  return data;
+};
+
+// Function to fetch the King of the Hill Pump.fun coin
+const getKingOfTheHillCoin = async () => {
+  const response = await fetch('https://frontend-api.pump.fun/coins/king-of-the-hill?includeNsfw=true');
+  const data = await response.json();
+  return data;
+};
+
+// Function to fetch candlestick data for a given mint
+const getCandlestickData = async (mint: string) => {
+  const response = await fetch(`https://frontend-api.pump.fun/candlesticks/${mint}?offset=0&limit=1000&timeframe=1`);
+  const rawData = await response.json();
+  const formattedData = rawData.map((item: any) => ({
+    mint: item.mint,
+    timestamp: item.timestamp,
+    open: item.open,
+    high: item.high,
+    low: item.low,
+    close: item.close,
+    volume: item.volume,
+    slot: item.slot,
+    is5Min: item.is_5_min,
+    is1Min: item.is_1_min,
+  }));
+  return formattedData;
+};
 
 const fetchKothCoin = async () => {
   try {
@@ -719,9 +776,8 @@ const fetchKothCoin = async () => {
     const existingCoin = chartList.value.find(coin => coin.mint === newCoin.mint);
     if (!existingCoin) {
       const candlestickData = await getCandlestickData(newCoin.mint);
-      chartList.value.unshift({ ...newCoin, candlestickData });
-    }
-  } catch (error) {
+      chartList.value.unshift({ ...newCoin, candlestickData } as Coin);    }
+  } catch (error:any) {
     errorMessage.value = 'Failed to fetch King of the Hill coin data: ' + error.message;
   }
 };
@@ -797,7 +853,7 @@ const buyCoin = async (coin: any) => {
     transaction.feePayer = userPublicKey;
     const serializedTransaction = transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
     successMessage.value = 'Transaction successful!';
-  } catch (error) {
+  } catch (error:any) {
     errorMessage.value = 'Transaction failed: ' + error.message;
   }
 };
@@ -841,7 +897,7 @@ const sellCoin = async (coin: any) => {
     transaction.feePayer = userPublicKey;
     const serializedTransaction = transaction.serialize({ requireAllSignatures: false, verifySignatures: false });
     successMessage.value = 'Transaction successful!';
-  } catch (error) {
+  } catch (error:any) {
     errorMessage.value = 'Transaction failed: ' + error.message;
   }
 };

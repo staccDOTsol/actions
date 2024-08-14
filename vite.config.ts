@@ -1,19 +1,22 @@
 import { fileURLToPath, URL } from 'node:url'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import { nodePolyfills } from 'vite-plugin-node-polyfills';
+// @ts-ignore
+import nodePolyfillsBrowser from 'vite-plugin-node-stdlib-browser';
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
-
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
     nodePolyfills({
+      include: ['buffer', 'stream', 'string_decoder', 'events', 'assert', 'util'],
       globals: {
-        Buffer: true
+        Buffer: false,
+        global: true,
+        process: false,
       },
-      protocolImports: true
-    })
+    }),    nodePolyfillsBrowser() // Add this line
+
   ],
   resolve: {
     alias: {

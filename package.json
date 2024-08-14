@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",  "start": "vite preview",
-
+    "dev": "vite",
+    "start": "vite preview",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -14,11 +14,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
     "@dscvr-one/canvas-client-sdk": "^1.0.0",
     "@solana/web3.js": "^1.91.4",
     "bs58": "^5.0.0",
     "buffer": "^6.0.3",
+    "ipfs-infura": "^1.1.9",
     "vite-plugin-node-polyfills": "^0.22.0",
+    "vite-plugin-node-stdlib-browser": "^0.2.1",
     "vue": "^3.4.29"
   },
   "devDependencies": {

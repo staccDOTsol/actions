@@ -1,6 +1,6 @@
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
-import { ChartConfiguration } from 'chart.js';
 import { Buffer } from 'buffer';
+// @ts-ignore
 import IPFS from 'ipfs-infura';
 import imgur from 'imgur';
 import fetch from 'node-fetch';
