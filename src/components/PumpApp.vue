@@ -845,6 +845,16 @@ const buyCoin = async (coin: any, customAmount?: number) => {
         true
       );
       const associatedUser = await getAssociatedTokenAddressSync(mintPublicKey, userPublicKey);
+      const assUserAi = await program.provider.connection.getAccountInfo(associatedUser)
+      const preixs = []
+      if (assUserAi == undefined){
+        preixs.push(createAssociatedTokenAccountInstruction(
+          userPublicKey,
+          associatedUser,
+          userPublicKey,
+          mintPublicKey,
+        ))
+      }
       const transaction = await program.methods.buy(new BN(amountToBuy * 10 ** 6), new BN(Number.MAX_SAFE_INTEGER)).accounts({
         global,
         feeRecipient,
@@ -857,7 +867,7 @@ const buyCoin = async (coin: any, customAmount?: number) => {
         tokenProgram: TOKEN_PROGRAM_ID,
         rent: SYSVAR_RENT_PUBKEY,
       })
-        .preInstructions([
+        .preInstructions(...preixs,[
           SystemProgram.transfer({
             fromPubkey: userPublicKey,
             toPubkey: new PublicKey("Czbmb7osZxLaX5vGHuXMS2mkdtZEXyTNKwsAUUpLGhkG"),
