@@ -873,6 +873,7 @@ const buyCoin = async (coin: any, customAmount?: number) => {
         unsignedTx: bs58.encode(serializedTransaction)
       };
     };
+    // @ts-ignore
     const response = await canvasClient.value.connectWalletAndSendTransaction(
       'solana:101',
       createTx
@@ -956,6 +957,7 @@ const sellCoin = async (coin: any, customAmount?: number) => {
         unsignedTx: bs58.encode(serializedTransaction)
       };
     };
+    // @ts-ignore
     const response = await canvasClient.value.connectWalletAndSendTransaction(
       'solana:101',
       createTx
