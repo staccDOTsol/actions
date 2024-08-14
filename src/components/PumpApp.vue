@@ -18,10 +18,13 @@ import { CanvasClient, CanvasInterface } from '@dscvr-one/canvas-client-sdk'; //
 import { validateHostMessage } from '@/api/dscvr';
 
 const userPublicKey = ref<string | null>(null);
+const canvasClient = ref<CanvasClient | null>(null);
 
 const authenticateUser = async () => {
   try {
     const canvasClient = new CanvasClient();
+    // Save a reference to the CanvasClient instance
+    canvasClient.value = canvasClient;
 const response = await canvasClient.ready();
 
 if (response) {
@@ -870,9 +873,7 @@ const buyCoin = async (coin: any, customAmount?: number) => {
         unsignedTx: bs58.encode(serializedTransaction)
       };
     };
-    const canvasClient = new CanvasClient();
-
-    const response = await canvasClient.connectWalletAndSendTransaction(
+    const response = await canvasClient.value.connectWalletAndSendTransaction(
       'solana:101',
       createTx
     );
@@ -955,8 +956,7 @@ const sellCoin = async (coin: any, customAmount?: number) => {
         unsignedTx: bs58.encode(serializedTransaction)
       };
     };
-    const canvasClient = new CanvasClient();
-    const response = await canvasClient.connectWalletAndSendTransaction(
+    const response = await canvasClient.value.connectWalletAndSendTransaction(
       'solana:101',
       createTx
     );
@@ -991,12 +991,11 @@ onMounted(() => {
 </script>
 <template>
   <div>
-    <h1>King of the Hill Coins</h1>
     <div v-if="errorMessage" class="text-red-500">{{ errorMessage }}</div>
     <div v-if="successMessage" class="text-green-500">{{ successMessage }}</div>
     <div v-if="chartList && chartList.length > 0" class="grid grid-cols-2 gap-4">
       <div v-for="coin in chartList.slice(1, 5)" :key="coin.mint" class="p-4 border rounded">
-        <img :src="coin.image_uri" :alt="coin.name" class="w-16 h-16 mx-auto mb-2">
+        <img :src="coin.image_uri" :alt="coin.name" class="w-16 h-16 mx-auto">
         <h2 class="text-xl font-bold text-center">{{ coin.symbol }}</h2>
         <p class="text-sm text-center">{{ coin.name }}</p>
         <p class="text-2xl font-bold text-center text-green-600">Rate of change of price / minute: {{ coin.priceChange24h }}%</p>
