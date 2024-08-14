@@ -26,6 +26,7 @@
     "chartjs-node-canvas": "^4.1.6",
     "date-fns": "^3.6.0",
     "form-data": "^4.0.0",
+    "hono": "^4.5.5",
     "imgur": "^2.4.2",
     "ipfs-infura": "^1.1.9",
     "node-fetch": "2",
