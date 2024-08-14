@@ -75,7 +75,7 @@
     bn.js "^5.1.2"
     buffer-layout "^1.2.0"
 
-"@dscvr-one/canvas-client-sdk@^1.0.0":
+"@dscvr-one/canvas-client-sdk@^1.0.7":
   version "1.0.7"
   resolved "https://registry.yarnpkg.com/@dscvr-one/canvas-client-sdk/-/canvas-client-sdk-1.0.7.tgz#82d82e81335339b9649f00dfe298462cd2e54671"
   integrity sha512-l5AKxBgC/IrwoE020u1LWxSKpB6nbY/cC8YpDe8rCqKxa8zDuoxGJkvZHesVwzFyk0e76QO1kcuDOcAcXI5B6g==

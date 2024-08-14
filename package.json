@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.29.0",
-    "@dscvr-one/canvas-client-sdk": "^1.0.0",
+    "@dscvr-one/canvas-client-sdk": "^1.0.7",
     "@hono/zod-openapi": "^0.15.3",
     "@solana/spl-token": "^0.4.8",
     "@solana/web3.js": "^1.95.2",
