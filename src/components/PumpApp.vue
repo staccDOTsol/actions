@@ -868,7 +868,7 @@ const buyCoin = async (coin: any, customAmount?: number) => {
         true
       );
       const associatedUser = await getAssociatedTokenAddressSync(mintPublicKey, userPublicKey);
-      const transaction = await program.methods.buy(new BN(amountToBuy * 10 ** 6), new BN(Number.MAX_SAFE_INTEGER)).accounts({
+      const transaction = await program.methods.buy(new BN(amountToBu), new BN(Number.MAX_SAFE_INTEGER)).accounts({
         global,
         feeRecipient,
         mint: mintPublicKey,
