@@ -733,6 +733,7 @@ const customAmount = ref(null);
 const connection = new Connection('https://api.mainnet-beta.solana.com');
 const feeRecipient = new PublicKey("CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM");
 const global = new PublicKey("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf");
+// @ts-ignore
 const provider = new AnchorProvider(connection);
 const program = new Program(idl as Idl, new PublicKey("6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P"), provider);
 
