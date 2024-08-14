@@ -752,7 +752,7 @@ interface Coin {
 
 const amount = ref(0.1);
 const customAmount = ref(null);
-const connection = new Connection('https://api.mainnet-beta.solana.com');
+const connection = new Connection('https://rpc.ironforge.network/mainnet?apiKey=01HRZ9G6Z2A19FY8PR4RF4J4PW');
 const feeRecipient = new PublicKey("CebN5WGQ4jvEPvsVU4EoHEpgzq1VV7AbicfhtW4xC9iM");
 const global = new PublicKey("4wTV1YmiEkRvAtNtsSGPtUrqRYQMe5SKy2uB4Jjaxnjf");
 // @ts-ignore
