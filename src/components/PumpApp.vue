@@ -22,10 +22,10 @@ const canvasClient = ref<CanvasClient | null>(null);
 
 const authenticateUser = async () => {
   try {
-    const canvasClient = new CanvasClient();
+    const c = new CanvasClient();
     // Save a reference to the CanvasClient instance
-    canvasClient.value = canvasClient;
-const response = await canvasClient.ready();
+    canvasClient.value = c;
+const response = await c.ready();
 
 if (response) {
     const user = response.untrusted.user;
