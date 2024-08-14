@@ -817,8 +817,31 @@ const fetchKothCoin = async () => {
 };
 
 const buyCoin = async (coin: any, customAmount?: number) => {
-    const amountToBuy = customAmount ?? amount.value;
-    
+    let amountToBuy = customAmount ?? amount.value;
+    // Calculate the price for the amount to buy
+    const calculatePrice = (outputAmount: number, virtualSolReserves: number, virtualTokenReserves: number): number => {
+      return (outputAmount * virtualSolReserves) / (virtualTokenReserves - outputAmount);
+    };
+
+      // Get reserves from the coin object
+      const virtualSolReserves = coin.virtual_sol_reserves;
+      const virtualTokenReserves = coin.virtual_token_reserves;
+      
+      if (!virtualSolReserves || !virtualTokenReserves) {
+        throw new Error('Missing reserve information for the coin');
+      }
+
+      // Convert amountToBuy to the same unit as virtualTokenReserves (assuming it's in the smallest unit)
+      const outputAmount = amountToBuy * 1e9; // Assuming amountToBuy is in SOL, convert to lamports
+      
+      const price = calculatePrice(outputAmount, virtualSolReserves, virtualTokenReserves);
+      console.log(`Estimated price for ${amountToBuy} tokens: ${price / 1e9} SOL`); // Convert back to SOL for display
+      amountToBuy = price
+      // You might want to show this price to the user or use it in further calculations
+      // If you need to store this in a reactive variable, make sure it's defined in your setup() or data()
+      // For example: const estimatedPrice = ref(0);
+      // estimatedPrice.value = price / 1e9;
+ 
     const createTx = async (
       response: CanvasInterface.User.ConnectWalletResponseMessage
     ): Promise<CanvasInterface.User.UnsignedTransaction | undefined> => {
@@ -903,6 +926,29 @@ const buyCoin = async (coin: any, customAmount?: number) => {
 const sellCoin = async (coin: any, customAmount?: number) => {
     const amountToSell = customAmount ?? amount.value;
     
+    // Calculate the amount of SOL to receive for the tokens being sold
+    const calculateSolToReceive = (tokenAmount: number, virtualSolReserves: number, virtualTokenReserves: number): number => {
+      return (tokenAmount * virtualSolReserves) / (virtualTokenReserves + tokenAmount);
+    };
+
+    // Get reserves from the coin object
+    const virtualSolReserves = coin.virtual_sol_reserves;
+    const virtualTokenReserves = coin.virtual_token_reserves;
+
+    if (!virtualSolReserves || !virtualTokenReserves) {
+      throw new Error('Missing reserve information for the coin');
+    }
+
+    // Convert amountToSell to the same unit as virtualTokenReserves (assuming it's in the smallest unit)
+    const tokenAmount = amountToSell * 1e9; // Assuming amountToSell is in tokens, convert to smallest unit
+
+    const solToReceive = calculateSolToReceive(tokenAmount, virtualSolReserves, virtualTokenReserves);
+    console.log(`Estimated SOL to receive for ${amountToSell} tokens: ${solToReceive / 1e9} SOL`); // Convert back to SOL for display
+
+    // You might want to show this amount to the user or use it in further calculations
+    // If you need to store this in a reactive variable, make sure it's defined in your setup() or data()
+    // For example: const estimatedSolToReceive = ref(0);
+    // estimatedSolToReceive.value = solToReceive / 1e9;
     const createTx = async (
       response: CanvasInterface.User.ConnectWalletResponseMessage
     ): Promise<CanvasInterface.User.UnsignedTransaction | undefined> => {
@@ -929,7 +975,7 @@ const sellCoin = async (coin: any, customAmount?: number) => {
         true
       );
       const associatedUser = await getAssociatedTokenAddressSync(mintPublicKey, userPublicKey);
-      const transaction = await program.methods.sell(new BN(amountToSell * 10 ** 6), new BN(0)).accounts({
+      const transaction = await program.methods.sell(new BN(solToReceive), new BN(0)).accounts({
         global,
         feeRecipient,
         mint: mintPublicKey,
